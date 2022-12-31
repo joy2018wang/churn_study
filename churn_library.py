@@ -1,12 +1,11 @@
-# library doc string
 '''
 Module to perform churn analysis and train models
 Author: Joy Wang
-Last updated: Dec 12, 2022
+File created: Dec 12, 2022
+Last updated: Dec 28, 2022
 '''
 
 
-# import libraries
 from typing import Optional, List
 import logging
 
@@ -112,6 +111,7 @@ def encoder_helper(
 
 def perform_feature_engineering(
         df: pd.DataFrame,
+        x_cols: List[str],
         response: Optional[str] = "y"):
     '''
     feature engineering
@@ -119,6 +119,7 @@ def perform_feature_engineering(
     Parameters:
     -----------
               df: pandas dataframe
+              x_cols: the X columns for the model
               response: string of response name [optional argument that could
               be used for naming variables or index y column]
 
@@ -130,36 +131,15 @@ def perform_feature_engineering(
               y_test: y testing data
     '''
     X = pd.DataFrame()
-    keep_cols = [
-        'Customer_Age',
-        'Dependent_count',
-        'Months_on_book',
-        'Total_Relationship_Count',
-        'Months_Inactive_12_mon',
-        'Contacts_Count_12_mon',
-        'Credit_Limit',
-        'Total_Revolving_Bal',
-        'Avg_Open_To_Buy',
-        'Total_Amt_Chng_Q4_Q1',
-        'Total_Trans_Amt',
-        'Total_Trans_Ct',
-        'Total_Ct_Chng_Q4_Q1',
-        'Avg_Utilization_Ratio',
-        'Gender_Churn',
-        'Education_Level_Churn',
-        'Marital_Status_Churn',
-        'Income_Category_Churn',
-        'Card_Category_Churn']
-
-    X = df[keep_cols]
+    X = df[x_cols]
     y = df[response]
 
     return train_test_split(X, y, test_size=0.3, random_state=42)
 
 
-def classification_report_image(X_train:pd.DataFrame, X_test: pd.DataFrame,
-                        y_train: pd.DataFrame, y_test: pd.DataFrame,
-                        model_folder: str, image_folder: str):
+def classification_report_image(X_train: pd.DataFrame, X_test: pd.DataFrame,
+                                y_train: pd.DataFrame, y_test: pd.DataFrame,
+                                model_folder: str, image_folder: str):
     '''
     produces classification report for training and testing results and stores report as image
     in images folder
@@ -202,13 +182,13 @@ def classification_report_image(X_train:pd.DataFrame, X_test: pd.DataFrame,
         y_test_preds = model.predict(X_test)
         plt.rc('figure', figsize=(5, 5))
         plt.text(0.01, 1, str(f'{model_type} Train'),
-                {'fontsize': 10}, fontproperties = 'monospace')
+                 {'fontsize': 10}, fontproperties='monospace')
         plt.text(0.01, 0.1, str(classification_report(y_test, y_test_preds)),
-                {'fontsize': 10}, fontproperties = 'monospace')
+                 {'fontsize': 10}, fontproperties='monospace')
         plt.text(0.01, 0.5, str(f'{model_type} Test'), {'fontsize': 10},
-                fontproperties = 'monospace')
+                 fontproperties='monospace')
         plt.text(0.01, 0.6, str(classification_report(y_train, y_train_preds)),
-                {'fontsize': 10}, fontproperties = 'monospace')
+                 {'fontsize': 10}, fontproperties='monospace')
         plt.axis('off')
 
         plt.savefig(f"{image_folder}{model_type}classification_report.png")
@@ -328,20 +308,41 @@ if __name__ == "__main__":
         'Avg_Utilization_Ratio'
     ]
 
+    KEEP_COLS = [
+        'Customer_Age',
+        'Dependent_count',
+        'Months_on_book',
+        'Total_Relationship_Count',
+        'Months_Inactive_12_mon',
+        'Contacts_Count_12_mon',
+        'Credit_Limit',
+        'Total_Revolving_Bal',
+        'Avg_Open_To_Buy',
+        'Total_Amt_Chng_Q4_Q1',
+        'Total_Trans_Amt',
+        'Total_Trans_Ct',
+        'Total_Ct_Chng_Q4_Q1',
+        'Avg_Utilization_Ratio',
+        'Gender_Churn',
+        'Education_Level_Churn',
+        'Marital_Status_Churn',
+        'Income_Category_Churn',
+        'Card_Category_Churn']
+
     data = import_data(DATA_PTH)
     perform_eda(data, quant_lst, category_lst, IMAGE_DIR)
 
     data = encoder_helper(data, category_lst, RESPONSE)
 
     X_train_df, X_test_df, y_train_df, y_test_df = perform_feature_engineering(
-        data, RESPONSE)
+        data, KEEP_COLS, RESPONSE)
 
-    train_models(X_train = X_train_df, y_train = y_train_df,
-                model_folder = MODEL_DIR)
+    train_models(X_train=X_train_df, y_train=y_train_df,
+                 model_folder=MODEL_DIR)
 
-    classification_report_image(X_train = X_train_df, X_test = X_test_df,
-                y_train = y_train_df, y_test = y_test_df,
-                model_folder = MODEL_DIR, image_folder = IMAGE_DIR)
+    classification_report_image(X_train=X_train_df, X_test=X_test_df,
+                                y_train=y_train_df, y_test=y_test_df,
+                                model_folder=MODEL_DIR, image_folder=IMAGE_DIR)
 
     feature_importance_plot(joblib.load(f'{MODEL_DIR}cv_rfc_model.pkl'),
                             X_train_df.columns, IMAGE_DIR, 'rfc')
