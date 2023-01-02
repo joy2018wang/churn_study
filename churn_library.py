@@ -279,7 +279,8 @@ if __name__ == "__main__":
         format='%(name)s - %(levelname)s - %(message)s')
 
     DATA_PTH = "./data/bank_data.csv"
-    IMAGE_DIR = "./images/"
+    IMAGE_EDA_DIR = "./images/eda/"
+    IMAGE_RESULTS_DIR = "./images/results/"
     MODEL_DIR = "./models/"
     RESPONSE = "Churn"
 
@@ -330,7 +331,7 @@ if __name__ == "__main__":
         'Card_Category_Churn']
 
     data = import_data(DATA_PTH)
-    perform_eda(data, quant_lst, category_lst, IMAGE_DIR)
+    perform_eda(data, quant_lst, category_lst, IMAGE_EDA_DIR)
 
     data = encoder_helper(data, category_lst, RESPONSE)
 
@@ -342,7 +343,7 @@ if __name__ == "__main__":
 
     classification_report_image(X_train=X_train_df, X_test=X_test_df,
                                 y_train=y_train_df, y_test=y_test_df,
-                                model_folder=MODEL_DIR, image_folder=IMAGE_DIR)
+                                model_folder=MODEL_DIR, image_folder=IMAGE_RESULTS_DIR)
 
     feature_importance_plot(joblib.load(f'{MODEL_DIR}cv_rfc_model.pkl'),
-                            X_train_df.columns, IMAGE_DIR, 'rfc')
+                            X_train_df.columns, IMAGE_RESULTS_DIR, 'rfc')
